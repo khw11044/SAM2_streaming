@@ -13,10 +13,8 @@ Run Segment Anything Model 2 on a **live video stream**
 
 
 ## Demos
-<div align=center>
-<p align="center">
-<img src="./assets/blackswan.gif" width="880">
-</p>
+
+![blackswan](https://github.com/user-attachments/assets/f6848e51-37d7-4d51-82de-7a1b186320d7)
 
 </div>
 
@@ -37,14 +35,57 @@ pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu12
 
 ```bash
 pip install -e .
+
+pip install -e ".[notebooks]"
+
 ```
+
+**위에 명령어 후 아래와 같은 오류 발생시**
+
+```bash
+
+        File "/tmp/pip-build-env-v31jxhmj/overlay/lib/python3.11/site-packages/torch/__init__.py", line 367, in <module>
+          from torch._C import *  # noqa: F403
+          ^^^^^^^^^^^^^^^^^^^^^^
+      ImportError: /tmp/pip-build-env-v31jxhmj/overlay/lib/python3.11/site-packages/torch/lib/../../nvidia/cusparse/lib/libcusparse.so.12: undefined symbol: __nvJitLinkComplete_12_4, version libnvJitLink.so.12
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: subprocess-exited-with-error
+
+× Getting requirements to build editable did not run successfully.
+│ exit code: 1
+╰─> See above for output.
+
+note: This error originates from a subprocess, and is likely not a problem with pip.
+
+```
+
+다음과 같은 명령어 진행 
+
+```bash
+python setup.py build_ext --inplace
+```
+
+다음으로 필요 라이브러리 설치 
+
+```bash
+
+pip install -r requirements.txt
+
+```
+
+
 ### Download Checkpoint
 
 Then, we need to download a model checkpoint.
 
 ```bash
 cd checkpoints
+
 ./download_ckpts.sh
+
+cd ..
 ```
 
 Then SAM-2-online can be used in a few lines as follows for image and video and **camera** prediction.

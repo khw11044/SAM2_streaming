@@ -29,7 +29,7 @@ enter_pressed = False
 
 # 마우스 콜백 함수
 def draw_rectangle(event, x, y, flags, param):
-    global drawing, ix, iy, fx, fy, bbox
+    global drawing, ix, iy, fx, fy, bbox, enter_pressed
     if event == cv2.EVENT_LBUTTONDOWN:  # 마우스 왼쪽 버튼 누름
         drawing = True
         ix, iy = x, y
@@ -40,6 +40,7 @@ def draw_rectangle(event, x, y, flags, param):
         drawing = False
         fx, fy = x, y
         bbox = (ix, iy, fx, fy)  # 바운딩 박스 저장
+        enter_pressed = True  # 드래그 종료 시 바로 다음 단계로 진행
 
 # 카메라 열기
 cap = cv2.VideoCapture(0)
@@ -60,13 +61,11 @@ while cap.isOpened():
     if not enter_pressed:
         temp_frame = frame.copy()
         if drawing and ix >= 0 and iy >= 0:  # 드래그 중인 경우
-            cv2.rectangle(temp_frame, (ix, iy), (fx, fy), (255, 0, 0), 2)
-        cv2.imshow("Camera", temp_frame)
+            cv2.rectangle(frame, (ix, iy), (fx, fy), (255, 0, 0), 2)
+        cv2.imshow("Camera", frame)
 
         key = cv2.waitKey(1)
-        if key == 13:  # Enter 키를 누르면 바운딩 박스 고정
-            enter_pressed = True
-        elif key == 27 or key == ord('q'):  # ESC 또는 Q로 종료
+        if key == 27 or key == ord('q'):  # ESC 또는 Q로 종료
             break
     else:
         
@@ -88,9 +87,7 @@ while cap.isOpened():
             all_mask = np.zeros((height, width, 1), dtype=np.uint8)
             # print(all_mask.shape)
             for i in range(0, len(out_obj_ids)):
-                out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).cpu().numpy().astype(
-                    np.uint8
-                ) * 255
+                out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).cpu().numpy().astype(np.uint8) * 255
 
                 all_mask = cv2.bitwise_or(all_mask, out_mask)
 
@@ -98,7 +95,7 @@ while cap.isOpened():
             frame = cv2.addWeighted(frame, 1, all_mask, 0.5, 0)
             
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        cv2.imshow("frame", frame)
+        cv2.imshow("Camera", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
