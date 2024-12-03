@@ -23,6 +23,8 @@ Run Segment Anything Model 2 on a **live video stream**
 
 ### Installation
 
+반드시 파이썬 버전은 3.11 이상이어야 합니다
+
 ```bash
 conda create -n seg python=3.11 -y
 
