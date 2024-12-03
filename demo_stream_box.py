@@ -87,9 +87,8 @@ while cap.isOpened():
             all_mask = np.zeros((height, width, 1), dtype=np.uint8)
             # print(all_mask.shape)
             for i in range(0, len(out_obj_ids)):
-                out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).cpu().numpy().astype(np.uint8) * 255
-
-                all_mask = cv2.bitwise_or(all_mask, out_mask)
+                out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).byte().cuda()
+                all_mask = out_mask.cpu().numpy() * 255
 
             all_mask = cv2.cvtColor(all_mask, cv2.COLOR_GRAY2RGB)
             frame = cv2.addWeighted(frame, 1, all_mask, 0.5, 0)
