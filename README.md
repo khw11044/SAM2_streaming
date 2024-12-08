@@ -7,6 +7,8 @@ Run Segment Anything Model 2 on a **live video stream**
 
 ## real-time SAM2
 
+[해당 페이지 깃헙링크](https://github.com/khw11044/SAM2_streaming)
+
 
 ## News
 - 27/11/2024 : 최초 SAM2 실시간 세그멘테이션 코드 성공 
@@ -96,10 +98,12 @@ Then SAM-2-online can be used in a few lines as follows for image and video and 
 
 ```bash
 
-python demo_stream.py
+python demo_stream_box.py
 
 
-python demo.py
+python demo_stream_point.py
+
+python demo_stream_point_random.py
 
 ```
 
