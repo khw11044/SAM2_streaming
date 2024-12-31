@@ -20,7 +20,7 @@ predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
 point = None
 point_selected = False
 if_init = False
-random_color = False
+random_color = True
 
 # 마우스 콜백 함수
 def collect_point(event, x, y, flags, param):

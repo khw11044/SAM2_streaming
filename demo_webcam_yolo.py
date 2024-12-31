@@ -63,7 +63,7 @@ while cap.isOpened():
         print("Failed to grab frame")
         break
     
-    if not largest_bbox:
+    if not largest_bbox and not if_init:
         largest_bbox = get_bbox(frame)
     
     if largest_bbox and not if_init:

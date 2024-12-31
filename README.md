@@ -12,11 +12,11 @@ Run Segment Anything Model 2 on a **live video stream**
 
 ## News
 - 27/11/2024 : 최초 SAM2 실시간 세그멘테이션 코드 성공 
-
+- sam2, sam2.1 둘다 가능
 
 ## Demo
 
-![blackswan](https://github.com/user-attachments/assets/f6848e51-37d7-4d51-82de-7a1b186320d7)
+![segmentation](output_gif/segmentation.gif)
 
 </div>
 
@@ -118,11 +118,19 @@ python demo.py
 python demo_webcam_box.py
 ```
 
+![2](https://github.com/user-attachments/assets/0d0ef6b6-6037-4269-ab89-50a4628dccd1)
+
+
 3. webcam에서 실시간 sam2 적용하기 - 마우스 point 클릭으로 sam2할 객체 지정 
 
 ```python 
 python demo_webcam_point.py
 ```
+
+![3_1](https://github.com/user-attachments/assets/5ce081cc-74a7-4765-a63e-461b164537c4)
+
+![3_2](https://github.com/user-attachments/assets/2fab19e2-4e42-442e-84cc-8cf4799f2386)
+
 
 4. webcam에서 실시간 sam2 적용하기 - 첫 프레임에 사람 tracking 
 
@@ -130,6 +138,7 @@ python demo_webcam_point.py
 python demo_webcam_yolo.py
 ```
 
+![4](https://github.com/user-attachments/assets/93f5477e-1a0c-48c6-807d-33bdeed06ad6)
 
 
 ## References:
