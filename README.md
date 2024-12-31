@@ -1,20 +1,20 @@
 # segment-anything-2 real-time
 Run Segment Anything Model 2 on a **live video stream**
 
-## SAM2 live video stream 
+**# SAM2 live video stream** 
+**# SAM2 streaming** 
+**# real-time SAM2** 
+**# webcam SAM2**
 
-## SAM2 streaming 
 
-## real-time SAM2
-
-[해당 페이지 깃헙링크](https://github.com/khw11044/SAM2_streaming)
+[깃헙링크](https://github.com/khw11044/SAM2_streaming)
 
 
 ## News
 - 27/11/2024 : 최초 SAM2 실시간 세그멘테이션 코드 성공 
 
 
-## Demos
+## Demo
 
 ![blackswan](https://github.com/user-attachments/assets/f6848e51-37d7-4d51-82de-7a1b186320d7)
 
@@ -82,32 +82,53 @@ pip install -r requirements.txt
 
 ### Download Checkpoint
 
-Then, we need to download a model checkpoint.
+SAM2 모델 다운 
 
 ```bash
-cd checkpoints
+cd checkpoints/sam2
 
 ./download_ckpts.sh
 
-cd ..
+cd ../..
 ```
 
-Then SAM-2-online can be used in a few lines as follows for image and video and **camera** prediction.
+SAM2.1 모델 다운 
+
+```bash
+cd checkpoints/sam2.1
+
+./download_ckpts.sh
+
+cd ../..
+```
+
+자 이제 SAM2를 실시간 스트리밍 화면에 적용할 준비가 됐습니다.
 
 ### Demo streaming 
 
-```bash
+1. mp4 파일에서 테스트 해보기 
 
-python demo_stream_box.py
-
-
-python demo_stream_point.py
-
-python demo_stream_point_random.py
-
+```python
+python demo.py
 ```
 
-demo_stream.py 는 바운딩 박스 마우스로 지정하고 엔터를 누르면 segmentation 시작 
+2. webcam에서 실시간 sam2 적용하기 - 마우스로 바운딩 박스를 그려서 sam2할 객체 지정 
+
+```python 
+python demo_webcam_box.py
+```
+
+3. webcam에서 실시간 sam2 적용하기 - 마우스 point 클릭으로 sam2할 객체 지정 
+
+```python 
+python demo_webcam_point.py
+```
+
+4. webcam에서 실시간 sam2 적용하기 - 첫 프레임에 사람 tracking 
+
+```python 
+python demo_webcam_yolo.py
+```
 
 
 
