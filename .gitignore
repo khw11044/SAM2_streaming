@@ -7,4 +7,5 @@ __pycache__/
 build/*
 _C.*
 outputs/*
-checkpoints/*.pt
+checkpoints/sam2/*.pt
+checkpoints/sam2.1/*.pt
