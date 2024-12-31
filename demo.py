@@ -21,9 +21,9 @@ sam2_checkpoint = "./checkpoints/sam2_hiera_small.pt"
 model_cfg = "sam2_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
 
-os.makedirs('./tmp', exist_ok=True)
 
 def show_mask(mask, ax, obj_id=None, random_color=False, save_id=0):
+    os.makedirs('./tmp', exist_ok=True)
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
     else:
@@ -67,7 +67,7 @@ def show_bbox(bbox, ax, marker_size=200):
     print(x, y, w, h)
     ax.add_patch(plt.Rectangle((x, y), w, h, fill=None, edgecolor="blue", linewidth=2))
 
-cap = cv2.VideoCapture("./notebooks/videos/aquarium/aquarium.mp4")
+cap = cv2.VideoCapture("./videos/aquarium.mp4")
 ret, frame = cap.read()
 
 width, height = frame.shape[:2][::-1]
