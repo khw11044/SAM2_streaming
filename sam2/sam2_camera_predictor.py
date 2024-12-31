@@ -568,6 +568,14 @@ class SAM2CameraPredictor(SAM2Base):
                 dtype=torch.float32,
                 device=self.condition_state["device"],
             ),
+            "object_score_logits": torch.full(
+                size=(batch_size, 1),
+                # default to 10.0 for object_score_logits, i.e. assuming the object is
+                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
+                fill_value=10.0,
+                dtype=torch.float32,
+                device=self.condition_state["device"],
+            ),
         }
         empty_mask_ptr = None
         for obj_idx in range(batch_size):
@@ -612,6 +620,9 @@ class SAM2CameraPredictor(SAM2Base):
                 )
                 consolidated_pred_masks[obj_idx : obj_idx + 1] = resized_obj_mask
             consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
+            consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out[
+                "object_score_logits"
+            ]
 
         # Optionally, apply non-overlapping constraints on the consolidated scores
         # and rerun the memory encoder
@@ -629,6 +640,7 @@ class SAM2CameraPredictor(SAM2Base):
                 frame_idx=frame_idx,
                 batch_size=batch_size,
                 high_res_masks=high_res_masks,
+                object_score_logits=consolidated_out["object_score_logits"],
                 is_mask_from_pts=True,  # these frames are what the user interacted with
             )
             consolidated_out["maskmem_features"] = maskmem_features
@@ -1081,17 +1093,24 @@ class SAM2CameraPredictor(SAM2Base):
         maskmem_pos_enc = self._get_maskmem_pos_enc(current_out)
         # object pointer is a small tensor, so we always keep it on GPU memory for fast access
         obj_ptr = current_out["obj_ptr"]
+        object_score_logits = current_out["object_score_logits"]
         # make a compact version of this frame's output to reduce the state size
         compact_current_out = {
             "maskmem_features": maskmem_features,
             "maskmem_pos_enc": maskmem_pos_enc,
             "pred_masks": pred_masks,
             "obj_ptr": obj_ptr,
+            "object_score_logits": object_score_logits
         }
         return compact_current_out, pred_masks_gpu
 
     def _run_memory_encoder(
-        self, frame_idx, batch_size, high_res_masks, is_mask_from_pts
+        self, 
+        frame_idx, 
+        batch_size, 
+        high_res_masks, 
+        object_score_logits, 
+        is_mask_from_pts
     ):
         """
         Run the memory encoder on `high_res_masks`. This is usually after applying
@@ -1106,6 +1125,7 @@ class SAM2CameraPredictor(SAM2Base):
             current_vision_feats=current_vision_feats,
             feat_sizes=feat_sizes,
             pred_masks_high_res=high_res_masks,
+            object_score_logits=object_score_logits,
             is_mask_from_pts=is_mask_from_pts,
         )
 

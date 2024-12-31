@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import cv2
 from IPython import display
-from sam2.build_sam import build_sam2_camera_predictor
+from sam2.build_sam import build_sam2_camera_predictor, build_sam2_video_predictor
+
 
 # use bfloat16 for the entire notebook
 torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()
@@ -19,7 +20,7 @@ if torch.cuda.get_device_properties(0).major >= 8:
 model_version='sam2'
 sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
 model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
-predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
+predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint)
 
 
 def show_mask(mask, ax, obj_id=None, random_color=False, save_id=0):
@@ -72,11 +73,11 @@ ret, frame = cap.read()
 
 width, height = frame.shape[:2][::-1]
 
-predictor.load_first_frame(frame)
+# predictor.load_first_frame(frame)
 if_init = True
 
-using_point = False # if True, we use point prompt
-using_box = True # if True, we use point prompt
+using_point = True # if True, we use point prompt
+using_box = False # if True, we use point prompt
 using_mask= False  # if True, we use mask prompt
 
 ann_frame_idx = 0  # the frame index we interact with
@@ -96,7 +97,7 @@ plt.imshow(frame)
 
 
 if using_point:
-    _, out_obj_ids, out_mask_logits = predictor.add_new_prompt(
+    _, out_obj_ids, out_mask_logits = predictor.add_new_points(
         frame_idx=ann_frame_idx,
         obj_id=ann_obj_id,
         points=points,
@@ -105,7 +106,7 @@ if using_point:
     show_points(points, labels, plt.gca())
 
 elif using_box:
-    _, out_obj_ids, out_mask_logits = predictor.add_new_prompt(
+    _, out_obj_ids, out_mask_logits = predictor.add_new_points(
         frame_idx=ann_frame_idx, obj_id=ann_obj_id, bbox=bbox
     )
     show_bbox(bbox, plt.gca())

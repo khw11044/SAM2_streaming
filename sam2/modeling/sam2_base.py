@@ -89,6 +89,7 @@ class SAM2Base(torch.nn.Module):
         soft_no_obj_ptr: bool = False,
         use_mlp_for_obj_ptr_proj: bool = False,
         # extra arguments used to construct the SAM mask decoder; if not None, it should be a dict of kwargs to be passed into `MaskDecoder` class.
+        no_obj_embed_spatial: bool = False,
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
@@ -170,6 +171,10 @@ class SAM2Base(torch.nn.Module):
             self.no_obj_ptr = torch.nn.Parameter(torch.zeros(1, self.hidden_dim))
             trunc_normal_(self.no_obj_ptr, std=0.02)
         self.use_mlp_for_obj_ptr_proj = use_mlp_for_obj_ptr_proj
+        self.no_obj_embed_spatial = None
+        if no_obj_embed_spatial:
+            self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, self.mem_dim))
+            trunc_normal_(self.no_obj_embed_spatial, std=0.02)
 
         self._build_sam_heads()
         self.add_all_frames_to_correct_as_cond = add_all_frames_to_correct_as_cond
@@ -666,6 +671,7 @@ class SAM2Base(torch.nn.Module):
         current_vision_feats,
         feat_sizes,
         pred_masks_high_res,
+        object_score_logits,
         is_mask_from_pts,
     ):
         """Encode the current image and its prediction into a memory feature."""
@@ -698,6 +704,16 @@ class SAM2Base(torch.nn.Module):
         )
         maskmem_features = maskmem_out["vision_features"]
         maskmem_pos_enc = maskmem_out["vision_pos_enc"]
+        
+        # add a no-object embedding to the spatial memory to indicate that the frame
+        # is predicted to be occluded (i.e. no object is appearing in the frame)
+        if self.no_obj_embed_spatial is not None:
+            is_obj_appearing = (object_score_logits > 0).float()
+            maskmem_features += (
+                1 - is_obj_appearing[..., None, None]
+            ) * self.no_obj_embed_spatial[..., None, None].expand(
+                *maskmem_features.shape
+            )
 
         return maskmem_features, maskmem_pos_enc
 
@@ -773,13 +789,14 @@ class SAM2Base(torch.nn.Module):
             low_res_masks,
             high_res_masks,
             obj_ptr,
-            _,
+            object_score_logits,
         ) = sam_outputs
 
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
         current_out["obj_ptr"] = obj_ptr
-
+        current_out["object_score_logits"] = object_score_logits
+        
         # Finally run the memory encoder on the predicted mask to encode
         # it into a new memory feature (that can be used in future frames)
         if run_mem_encoder and self.num_maskmem > 0:
@@ -788,6 +805,7 @@ class SAM2Base(torch.nn.Module):
                 current_vision_feats=current_vision_feats,
                 feat_sizes=feat_sizes,
                 pred_masks_high_res=high_res_masks_for_mem_enc,
+                object_score_logits=object_score_logits,
                 is_mask_from_pts=(point_inputs is not None),
             )
             current_out["maskmem_features"] = maskmem_features
