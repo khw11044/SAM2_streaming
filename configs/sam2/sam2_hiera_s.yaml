@@ -10,8 +10,8 @@ model:
       _target_: sam2.modeling.backbones.hieradet.Hiera
       embed_dim: 96
       num_heads: 1
-      stages: [1, 2, 7, 2]
-      global_att_blocks: [5, 7, 9]
+      stages: [1, 2, 11, 2]
+      global_att_blocks: [7, 10, 13]
       window_pos_embed_bkg_spatial_size: [7, 7]
     neck:
       _target_: sam2.modeling.backbones.image_encoder.FpnNeck
@@ -39,7 +39,7 @@ model:
       self_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         embedding_dim: 256
         num_heads: 1
         downsample_rate: 1
@@ -50,7 +50,7 @@ model:
       cross_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         rope_k_repeat: True
         embedding_dim: 256
         num_heads: 1
@@ -87,7 +87,6 @@ model:
   num_maskmem: 7
   image_size: 1024
   # apply scaled sigmoid on mask logits for memory encoder, and directly feed input mask as output mask
-  # SAM decoder
   sigmoid_scale_for_mem_enc: 20.0
   sigmoid_bias_for_mem_enc: -10.0
   use_mask_input_as_output_without_sam: true
@@ -114,5 +113,4 @@ model:
   multimask_max_pt_num: 1
   use_mlp_for_obj_ptr_proj: true
   # Compilation flag
-  # HieraT does not currently support compilation, should always be set to False
   compile_image_encoder: False

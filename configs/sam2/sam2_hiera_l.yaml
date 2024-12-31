@@ -8,8 +8,12 @@ model:
     scalp: 1
     trunk:
       _target_: sam2.modeling.backbones.hieradet.Hiera
-      embed_dim: 112
+      embed_dim: 144
       num_heads: 2
+      stages: [2, 6, 36, 4]
+      global_att_blocks: [23, 33, 43]
+      window_pos_embed_bkg_spatial_size: [7, 7]
+      window_spec: [8, 4, 16, 8]
     neck:
       _target_: sam2.modeling.backbones.image_encoder.FpnNeck
       position_encoding:
@@ -19,7 +23,7 @@ model:
         scale: null
         temperature: 10000
       d_model: 256
-      backbone_channel_list: [896, 448, 224, 112]
+      backbone_channel_list: [1152, 576, 288, 144]
       fpn_top_down_levels: [2, 3]  # output level 0 and 1 directly use the backbone features
       fpn_interp_model: nearest
 
@@ -36,7 +40,7 @@ model:
       self_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         embedding_dim: 256
         num_heads: 1
         downsample_rate: 1
@@ -47,7 +51,7 @@ model:
       cross_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         rope_k_repeat: True
         embedding_dim: 256
         num_heads: 1

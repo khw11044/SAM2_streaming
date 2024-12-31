@@ -12,7 +12,7 @@ if torch.cuda.get_device_properties(0).major >= 8:
 
 # 모델 및 예측기 초기화
 sam2_checkpoint = "./checkpoints/sam2_hiera_small.pt"
-model_cfg = "sam2_hiera_s.yaml"
+model_cfg = "sam2/sam2_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
 
 # 전역 변수

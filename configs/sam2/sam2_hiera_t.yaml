@@ -8,12 +8,11 @@ model:
     scalp: 1
     trunk:
       _target_: sam2.modeling.backbones.hieradet.Hiera
-      embed_dim: 144
-      num_heads: 2
-      stages: [2, 6, 36, 4]
-      global_att_blocks: [23, 33, 43]
+      embed_dim: 96
+      num_heads: 1
+      stages: [1, 2, 7, 2]
+      global_att_blocks: [5, 7, 9]
       window_pos_embed_bkg_spatial_size: [7, 7]
-      window_spec: [8, 4, 16, 8]
     neck:
       _target_: sam2.modeling.backbones.image_encoder.FpnNeck
       position_encoding:
@@ -23,7 +22,7 @@ model:
         scale: null
         temperature: 10000
       d_model: 256
-      backbone_channel_list: [1152, 576, 288, 144]
+      backbone_channel_list: [768, 384, 192, 96]
       fpn_top_down_levels: [2, 3]  # output level 0 and 1 directly use the backbone features
       fpn_interp_model: nearest
 
@@ -40,7 +39,7 @@ model:
       self_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         embedding_dim: 256
         num_heads: 1
         downsample_rate: 1
@@ -51,7 +50,7 @@ model:
       cross_attention:
         _target_: sam2.modeling.sam.transformer.RoPEAttention
         rope_theta: 10000.0
-        feat_sizes: [32, 32]
+        feat_sizes: [64, 64]
         rope_k_repeat: True
         embedding_dim: 256
         num_heads: 1
@@ -88,6 +87,7 @@ model:
   num_maskmem: 7
   image_size: 1024
   # apply scaled sigmoid on mask logits for memory encoder, and directly feed input mask as output mask
+  # SAM decoder
   sigmoid_scale_for_mem_enc: 20.0
   sigmoid_bias_for_mem_enc: -10.0
   use_mask_input_as_output_without_sam: true
@@ -114,4 +114,5 @@ model:
   multimask_max_pt_num: 1
   use_mlp_for_obj_ptr_proj: true
   # Compilation flag
+  # HieraT does not currently support compilation, should always be set to False
   compile_image_encoder: False
