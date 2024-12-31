@@ -63,7 +63,8 @@ while cap.isOpened():
     if not enter_pressed:
         temp_frame = frame.copy()
         if drawing and ix >= 0 and iy >= 0:  # 드래그 중인 경우
-            cv2.rectangle(frame, (ix, iy), (fx, fy), (255, 0, 0), 2)
+            cv2.rectangle(frame, (ix, iy), (fx, fy), (255, 0, 0), 2)        
+        cv2.putText(frame, "Select an object by drawing a box", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.imshow("Camera", frame)
 
         key = cv2.waitKey(1)
