@@ -73,6 +73,9 @@ class SAM2Base(torch.nn.Module):
         # whether to add an extra linear projection layer for the temporal positional encoding in the object pointers to avoid potential interference
         # with spatial positional encoding (only relevant when both `use_obj_ptrs_in_encoder=True` and `add_tpos_enc_to_obj_ptrs=True`)
         proj_tpos_enc_in_obj_ptrs=False,
+        # whether to use signed distance (instead of unsigned absolute distance) in the temporal positional encoding in the object pointers
+        # (only relevant when both `use_obj_ptrs_in_encoder=True` and `add_tpos_enc_to_obj_ptrs=True`)
+        use_signed_tpos_enc_to_obj_ptrs=False,
         # whether to only attend to object pointers in the past (before the current frame) in the encoder during evaluation
         # (only relevant when `use_obj_ptrs_in_encoder=True`; this might avoid pointer information too far in the future to distract the initial tracking)
         only_obj_ptrs_in_the_past_for_eval=False,
@@ -111,6 +114,7 @@ class SAM2Base(torch.nn.Module):
         if proj_tpos_enc_in_obj_ptrs:
             assert add_tpos_enc_to_obj_ptrs  # these options need to be used together
         self.proj_tpos_enc_in_obj_ptrs = proj_tpos_enc_in_obj_ptrs
+        self.use_signed_tpos_enc_to_obj_ptrs = use_signed_tpos_enc_to_obj_ptrs
         self.only_obj_ptrs_in_the_past_for_eval = only_obj_ptrs_in_the_past_for_eval
 
         # Part 2: memory attention to condition current frame's visual features
@@ -518,6 +522,7 @@ class SAM2Base(torch.nn.Module):
             return pix_feat
 
         num_obj_ptr_tokens = 0
+        tpos_sign_mul = -1 if track_in_reverse else 1
         # Step 1: condition the visual features of the current frame on previous memories
         if not is_init_cond_frame:
             # Retrieve the memories encoded with the maskmem backbone
@@ -596,11 +601,24 @@ class SAM2Base(torch.nn.Module):
                     }
                 else:
                     ptr_cond_outputs = selected_cond_outputs
+                # pos_and_ptrs = [
+                #     # Temporal pos encoding contains how far away each pointer is from current frame
+                #     (abs(frame_idx - t), out["obj_ptr"])
+                #     for t, out in ptr_cond_outputs.items()
+                # ]
                 pos_and_ptrs = [
                     # Temporal pos encoding contains how far away each pointer is from current frame
-                    (abs(frame_idx - t), out["obj_ptr"])
+                    (
+                        (
+                            (frame_idx - t) * tpos_sign_mul
+                            if self.use_signed_tpos_enc_to_obj_ptrs
+                            else abs(frame_idx - t)
+                        ),
+                        out["obj_ptr"],
+                    )
                     for t, out in ptr_cond_outputs.items()
                 ]
+                
                 # Add up to (max_obj_ptrs_in_encoder - 1) non-conditioning frames before current frame
                 for t_diff in range(1, max_obj_ptrs_in_encoder):
                     t = frame_idx + t_diff if track_in_reverse else frame_idx - t_diff

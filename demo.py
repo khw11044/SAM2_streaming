@@ -16,7 +16,7 @@ if torch.cuda.get_device_properties(0).major >= 8:
     torch.backends.cudnn.allow_tf32 = True
     
 
-model_version='sam2'
+model_version='sam2.1'
 sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
 model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
