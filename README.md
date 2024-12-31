@@ -1,4 +1,4 @@
-# segment-anything-2 real-time
+# segment-anything-2 real-time WebCam Streaming
 Run Segment Anything Model 2 on a **live video stream**
 
 **# SAM2 live video stream** 
