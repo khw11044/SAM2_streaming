@@ -16,7 +16,7 @@ if torch.cuda.get_device_properties(0).major >= 8:
 
 # ----------- argparse 추가 -----------
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_version", type=str, default="sam2", help="모델 버전 (e.g., sam2, sam2.1)")
+parser.add_argument("--model_version", type=str, default="sam2.1", help="모델 버전 (e.g., sam2, sam2.1)")
 args = parser.parse_args()
 # ------------------------------------
 

@@ -1,12 +1,12 @@
 import os
+import cv2
 import torch
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-import cv2
 from IPython import display
 from sam2.build_sam import build_sam2_camera_predictor
-
 
 from ultralytics import YOLO  
 yolomodel = YOLO("./checkpoints/yolo/yolo11n.pt")
@@ -18,7 +18,27 @@ if torch.cuda.get_device_properties(0).major >= 8:
     # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
-    
+
+
+
+# ----------- argparse 추가 -----------
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_version", type=str, default="sam2.1", help="모델 버전 (e.g., sam2, sam2.1)")
+args = parser.parse_args()
+# ------------------------------------
+
+# 모델 설정
+model_version=args.model_version
+sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
+model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
+predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
+
+# 전역 변수 초기화
+if_init = False
+largest_bbox=None
+bbox_show = True
+seg_show = False
+
 
 def get_bbox(frame):
     results = yolomodel.track(source=frame, classes=[0], conf=0.5, show=False, stream=True, verbose=False)
@@ -39,17 +59,6 @@ def get_bbox(frame):
 
     return largest_box
 
-model_version='sam2'
-sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
-model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
-predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
-
-
-# 전역 변수 초기화
-if_init = False
-largest_bbox=None
-bbox_show = True
-seg_show = False
 
 # 카메라 열기
 cap = cv2.VideoCapture(0)
