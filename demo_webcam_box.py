@@ -1,26 +1,31 @@
 import os
+import cv2
+import argparse
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-import cv2
-from IPython import display
 from sam2.build_sam import build_sam2_camera_predictor
-
-# use bfloat16 for the entire notebook
-torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()
+torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()        # use bfloat16 for the entire notebook
 
 if torch.cuda.get_device_properties(0).major >= 8:
     # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
-    
 
-model_version='sam2'
+
+# ----------- argparse 추가 -----------
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_version", type=str, default="sam2", help="모델 버전 (e.g., sam2, sam2.1)")
+args = parser.parse_args()
+# ------------------------------------
+
+
+# 모델 설정
+model_version=args.model_version
 sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
 model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
-
 
 
 # 전역 변수 초기화

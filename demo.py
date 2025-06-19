@@ -1,26 +1,32 @@
 import os
+import cv2
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-import cv2
+import argparse
 from sam2.build_sam import build_sam2_camera_predictor
 
-# use bfloat16 for the entire notebook
-torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()
+torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()        # use bfloat16 for the entire notebook
 
 if torch.cuda.get_device_properties(0).major >= 8:
-    # turn on tfloat32 for Ampere GPUs
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
 
+# ----------- argparse 추가 -----------
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_version", type=str, default="sam2.1", help="모델 버전 (e.g., sam2, sam2.1)")
+parser.add_argument("--video_path", type=str, default="./videos/aquarium.mp4", help="데모할 mp4 영상 경로")
+parser.add_argument("--output_gif", type=str, default="./output_gif/segmentation.gif", help="저장할 GIF 파일명")
+args = parser.parse_args()
+# ------------------------------------
+
 # 모델 설정
-model_version = 'sam2.1'
+model_version = args.model_version
 sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
 model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
 
-# Helper 함수
 def show_mask(mask, ax, obj_id=None, random_color=False, save_id=0):
     os.makedirs('./tmp', exist_ok=True)
     if random_color:
@@ -62,27 +68,30 @@ def show_bbox(bbox, ax, marker_size=200):
     ax.add_patch(plt.Rectangle((x, y), w, h, fill=None, edgecolor="blue", linewidth=2))
 
 # GIF 저장을 위한 폴더 생성
-os.makedirs('./output_gif', exist_ok=True)
+os.makedirs(os.path.dirname(args.output_gif), exist_ok=True)
 
 # GIF 저장을 위한 이미지 리스트 초기화
 images = []
 
-cap = cv2.VideoCapture("./videos/aquarium.mp4")
+cap = cv2.VideoCapture(args.video_path)
 ret, frame = cap.read()
+
+if not ret:
+    raise FileNotFoundError(f"Cannot read first frame from {args.video_path}")
 
 width, height = frame.shape[:2][::-1]
 
 predictor.load_first_frame(frame)
 if_init = True
 
-using_point = False  # if True, we use point prompt
-using_box = True  # if True, we use box prompt
-using_mask = False  # if True, we use mask prompt
+using_point = False
+using_box = True
+using_mask = False
 
-ann_frame_idx = 0  # the frame index we interact with
-ann_obj_id = 1  # Object ID for annotation
+ann_frame_idx = 0
+ann_obj_id = 1
 
-# Add bbox
+# Add bbox (필요시 좌표 수정)
 bbox = np.array([[600, 214], [765, 286]], dtype=np.float32)
 
 if using_box:
@@ -96,7 +105,6 @@ while True:
         break
 
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
     width, height = frame.shape[:2][::-1]
     if not if_init:
         predictor.load_first_frame(frame)
@@ -104,25 +112,20 @@ while True:
         ann_frame_idx = 0
         ann_obj_id = 1
         bbox = np.array([[600, 214], [765, 286]], dtype=np.float32)
-
         _, out_obj_ids, out_mask_logits = predictor.add_new_prompt(
             frame_idx=ann_frame_idx, obj_id=ann_obj_id, bbox=bbox
         )
     else:
         out_obj_ids, out_mask_logits = predictor.track(frame)
-
         all_mask = np.zeros((height, width, 1), dtype=np.uint8)
         for i in range(0, len(out_obj_ids)):
             out_mask = (out_mask_logits[i] > 0.0).permute(1, 2, 0).cpu().numpy().astype(
                 np.uint8
             ) * 255
-
             all_mask = cv2.bitwise_or(all_mask, out_mask)
-
         all_mask = cv2.cvtColor(all_mask, cv2.COLOR_GRAY2RGB)
         frame = cv2.addWeighted(frame, 1, all_mask, 0.5, 0)
 
-    # PIL 이미지로 변환하여 GIF 저장용 리스트에 추가
     images.append(Image.fromarray(frame))
 
     frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -134,9 +137,8 @@ cap.release()
 cv2.destroyAllWindows()
 
 # GIF로 저장
-output_gif_path = './output_gif/segmentation.gif'
 images[0].save(
-    output_gif_path,
+    args.output_gif,
     save_all=True,
     append_images=images[1:],
     optimize=False,
@@ -144,4 +146,4 @@ images[0].save(
     loop=0
 )
 
-print(f"GIF 저장 완료: {output_gif_path}")
+print(f"GIF 저장 완료: {args.output_gif}")

@@ -1,6 +1,7 @@
 import torch
-import numpy as np
 import cv2
+import argparse
+import numpy as np
 from sam2.build_sam import build_sam2_camera_predictor
 
 # use bfloat16 for the entire notebook
@@ -10,8 +11,15 @@ if torch.cuda.get_device_properties(0).major >= 8:
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
 
+
+# ----------- argparse 추가 -----------
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_version", type=str, default="sam2", help="모델 버전 (e.g., sam2, sam2.1)")
+args = parser.parse_args()
+# ------------------------------------
+
 # 모델 및 예측기 초기화
-model_version='sam2'
+model_version=args.model_version
 sam2_checkpoint = f"./checkpoints/{model_version}/{model_version}_hiera_small.pt"
 model_cfg = f"{model_version}/{model_version}_hiera_s.yaml"
 predictor = build_sam2_camera_predictor(model_cfg, sam2_checkpoint)
