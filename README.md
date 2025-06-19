@@ -1,13 +1,8 @@
 # segment-anything-2 real-time WebCam Streaming
 Run Segment Anything Model 2 on a **live video stream**
 
-**# SAM2 live video stream** 
-**# SAM2 streaming** 
-**# real-time SAM2** 
-**# webcam SAM2**
-
-
-[깃헙링크](https://github.com/khw11044/SAM2_streaming)
+[논문](https://arxiv.org/abs/2408.00714)
+[깃헙링크](https://arxiv.org/abs/2408.00714)
 
 
 ## News
@@ -28,12 +23,11 @@ Run Segment Anything Model 2 on a **live video stream**
 반드시 파이썬 버전은 3.11 이상이어야 합니다
 
 ```bash
-conda create -n seg python=3.11 -y
+conda create -n sam2 python=3.11 -y
 
-conda activate seg 
+conda activate sam2 
 
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-
+pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 --index-url https://download.pytorch.org/whl/cu121
 ```
 
 
