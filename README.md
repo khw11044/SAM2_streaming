@@ -2,6 +2,7 @@
 Run Segment Anything Model 2 on a **live video stream**
 
 [논문](https://arxiv.org/abs/2408.00714)
+
 [깃헙링크](https://arxiv.org/abs/2408.00714)
 
 
