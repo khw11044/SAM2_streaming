@@ -34,8 +34,6 @@ pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 --index-url https://dow
 ```bash
 pip install -e .
 
-pip install -e ".[notebooks]"
-
 ```
 
 **위에 명령어 후 아래와 같은 오류 발생시**
